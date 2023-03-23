@@ -5,35 +5,36 @@ const {Videogame,Genre} = require('../db');
 
 async function getAllDataApi() {
 
-    const allGamesApi = []
-
-    for(let i=1; i<=5; i++){
-        let apiData = await axios.get(`https://api.rawg.io/api/games?key=${API_KEY}&page=${i}`,{
-            headers:{
-                'Accept-Encoding': 'null'
-            }
-        });
-
-        apiData.data.results.map(vg =>{
-            allGamesApi.push({
-                id:vg.id,
-                name: vg.name,
-                description: vg.slug,
-                img: vg.background_image,
-                genres: vg.genres.map(g => g.name),
-                released:vg.released,
-                rating:vg.rating,
-                platforms: vg.platforms.map(p => p.platform.name)
-            })
-        })
-    }
-
-    return allGamesApi
+    const apiData = await axios.get(`https://api.rawg.io/api/games?key=${API_KEY}`,{
+        headers:{
+            'Accept-Encoding': 'null'
+        }
+    });
+    const allApiData = await apiData.data.results.map(vg =>{
+        return {
+            id:vg.id,
+            name: vg.name,
+            description: vg.slug,
+            img: vg.background_image,
+            genres: vg.genres.map(g => g.name),
+            released:vg.released,
+            rating:vg.rating,
+            platforms: vg.platforms.map(p => p.platform.name)
+        }
+    })
+    
+    return allApiData
 }
 
 async function getAllDataDB() {
     const allGamesDB = await Videogame.findAll({
-        include: Genre
+        include: {
+            model: Genre,
+            attributes: ['name'],
+            through:{
+                attributes: [],
+            }
+        }
     })
 
     return allGamesDB
